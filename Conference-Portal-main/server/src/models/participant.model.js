@@ -6,7 +6,7 @@ const participantSchema = new mongoose.Schema(
   {
     fullName:        { type: String, required: true, trim: true, maxlength: 150 },
     email:           { type: String, required: true, trim: true, lowercase: true, unique: true, index: true },
-    password:        { type: String, required: true, minlength: 6, select: false },
+    password:        { type: String, required: false, minlength: 6, select: false },
     phone:           { type: String, trim: true, maxlength: 30 },
     affiliation:     { type: String, trim: true, maxlength: 200 },
     country:         { type: String, trim: true, maxlength: 100 },
@@ -16,14 +16,13 @@ const participantSchema = new mongoose.Schema(
 );
 
 // Hash password before saving
-participantSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+participantSchema.pre('save', async function() {
+  if (!this.password || !this.isModified('password')) return;
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
   } catch (error) {
-    next(error);
+    throw error;
   }
 });
 

@@ -37,7 +37,14 @@ app.use('/api/admin', protect, require('./routes/admin/certificate.routes'));
 app.use('/api/admin', protect, require('./routes/admin/committeeMember.routes'));
 
 app.get('/api/health', (req, res) => res.json({ message: 'API is running' }));
-app.use(errorHandler);
+app.use((err, req, res, next) => {
+  console.error('❌ ERROR:', err);
+  const status = err.status || 500;
+  res.status(status).json({
+    message: err.message || 'Internal server error.',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 
